@@ -3,50 +3,97 @@ const { Produto } = require("../models/produto");
 
 const router = express.Router();
 
-// ─── Sua tarefa: CRUD completo de Produtos ────────────────────────────────────
-// Produto = { id (inteiro, automático), descricao (texto), preco (float) }
-// Use o Sequelize (modelo Produto) para acessar o banco. As funções são async.
-//
-// Contrato esperado pela validação:
-//
-//  GET    /produtos        → 200 + array de todos os produtos
-//  GET    /produtos/:id    → 200 + o produto; 404 se não existir
-//  POST   /produtos        → corpo { descricao, preco }
-//                             201 + produto criado; 400 se faltar descricao ou preco
-//  PUT    /produtos/:id     → substitui { descricao, preco } (ambos obrigatórios)
-//                             200 + produto atualizado; 400 se faltar campo; 404 se não existir
-//  PATCH  /produtos/:id     → atualiza parcialmente (descricao e/ou preco)
-//                             200 + produto atualizado; 404 se não existir
-//  DELETE /produtos/:id     → 204 (sem corpo); 404 se não existir
-
-// GET /produtos — lista todos
 router.get("/", async (req, res) => {
-  // TODO: retorne 200 com todos os produtos (Produto.findAll()).
+  try {
+    const produtos = await Produto.findAll();
+    return res.status(200).json(produtos);
+  } catch (error) {
+    return res.status(500).json({ erro: error.message });
+  }
 });
 
-// GET /produtos/:id — um produto
 router.get("/:id", async (req, res) => {
-  // TODO: busque por id; 200 com o produto ou 404 se não existir.
+  try {
+    const produto = await Produto.findByPk(req.params.id);
+    if (!produto) {
+      return res.status(404).json({ erro: "Produto não encontrado" });
+    }
+    return res.status(200).json(produto);
+  } catch (error) {
+    return res.status(500).json({ erro: error.message });
+  }
 });
 
-// POST /produtos — cria
 router.post("/", async (req, res) => {
-  // TODO: valide descricao e preco (400 se faltar); crie e responda 201 com o produto.
+  try {
+    const { descricao, preco } = req.body;
+
+    if (!descricao || preco === undefined || preco === null) {
+      return res.status(400).json({ erro: "Descrição e preço são obrigatórios" });
+    }
+
+    const novoProduto = await Produto.create({ descricao, preco });
+    return res.status(201).json(novoProduto);
+  } catch (error) {
+    return res.status(500).json({ erro: error.message });
+  }
 });
 
-// PUT /produtos/:id — substitui (descricao e preco obrigatórios)
 router.put("/:id", async (req, res) => {
-  // TODO: 404 se não existir; 400 se faltar campo; senão atualize e responda 200.
+  try {
+    const { descricao, preco } = req.body;
+
+    if (!descricao || preco === undefined || preco === null) {
+      return res.status(400).json({ erro: "Descrição e preço são obrigatórios" });
+    }
+
+    const produto = await Produto.findByPk(req.params.id);
+    if (!produto) {
+      return res.status(404).json({ erro: "Produto não encontrado" });
+    }
+
+    produto.descricao = descricao;
+    produto.preco = preco;
+    await produto.save();
+
+    return res.status(200).json(produto);
+  } catch (error) {
+    return res.status(500).json({ erro: error.message });
+  }
 });
 
-// PATCH /produtos/:id — atualização parcial
 router.patch("/:id", async (req, res) => {
-  // TODO: 404 se não existir; atualize só os campos enviados; responda 200.
+  try {
+    const produto = await Produto.findByPk(req.params.id);
+    if (!produto) {
+      return res.status(404).json({ erro: "Produto não encontrado" });
+    }
+
+    const { descricao, preco } = req.body;
+
+    if (descricao !== undefined) produto.descricao = descricao;
+    if (preco !== undefined) produto.preco = preco;
+
+    await produto.save();
+
+    return res.status(200).json(produto);
+  } catch (error) {
+    return res.status(500).json({ erro: error.message });
+  }
 });
 
-// DELETE /produtos/:id — remove
 router.delete("/:id", async (req, res) => {
-  // TODO: 404 se não existir; senão remova e responda 204 (sem corpo).
+  try {
+    const produto = await Produto.findByPk(req.params.id);
+    if (!produto) {
+      return res.status(404).json({ erro: "Produto não encontrado" });
+    }
+
+    await produto.destroy();
+    return res.status(204).send();
+  } catch (error) {
+    return res.status(500).json({ erro: error.message });
+  }
 });
 
 module.exports = router;
