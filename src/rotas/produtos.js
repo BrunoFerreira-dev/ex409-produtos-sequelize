@@ -3,6 +3,7 @@ const { Produto } = require("../models/produto");
 
 const router = express.Router();
 
+// GET /produtos - Listar todos os produtos
 router.get("/", async (req, res) => {
   try {
     const produtos = await Produto.findAll();
@@ -12,6 +13,7 @@ router.get("/", async (req, res) => {
   }
 });
 
+// GET /produtos/:id - Buscar produto por ID
 router.get("/:id", async (req, res) => {
   try {
     const produto = await Produto.findByPk(req.params.id);
