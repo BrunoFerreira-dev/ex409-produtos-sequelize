@@ -7,20 +7,21 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// GET /health — já implementada. Use para conferir que o servidor sobe.
-// A validação espera que GET /health responda com status 200.
 app.get("/health", (req, res) => {
   res.json({ status: "ok", api: "Produtos" });
 });
 
-// Todas as rotas de /produtos ficam no roteador dedicado.
 app.use("/produtos", produtosRouter);
 
-// Sincroniza o banco (cria a tabela) e sobe o servidor.
-sequelize.sync().then(() => {
-  app.listen(PORT, () => {
-    console.log(`API de Produtos rodando em http://localhost:${PORT}`);
+sequelize
+  .sync()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`API de Produtos rodando em http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Erro ao sincronizar com o banco de dados:", err);
   });
-});
 
 module.exports = app;
